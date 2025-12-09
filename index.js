@@ -1,24 +1,31 @@
 import 'dotenv/config';
 import express from 'express';
 import bodyParser from 'body-parser';
-import cors from 'cors'; // <--- import cors
+import cors from 'cors'; 
 import { GoogleGenAI } from '@google/genai';
 
 const app = express();
 const PORT = 4000;
 
-const ai = new GoogleGenAI({}); // Uses GEMINI_API_KEY from .env
+const ai = new GoogleGenAI({});
 
-// -----------------------------
-// Enable CORS
-// -----------------------------
+const allowedOrigins = [
+  'http://localhost:3000',
+  'https://document-qa-app-eta.vercel.app'
+];
+
 app.use(cors({
-  origin: 'http://localhost:3000', // allow requests from React dev server
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  }
 }));
 
 app.use(bodyParser.json());
 
-// POST /ask
 app.post('/ask', async (req, res) => {
   const { question, documentText } = req.body;
 
