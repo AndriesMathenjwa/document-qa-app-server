@@ -1,13 +1,11 @@
-import "dotenv/config";
+import "dotenv/config"; 
 import express from "express";
 import bodyParser from "body-parser";
 import cors from "cors";
-import { GoogleGenAI } from "@google/genai";
+import askRoutes from "./routes/askRoutes.js";
 
 const app = express();
 const PORT = process.env.PORT || 4000;
-
-const ai = new GoogleGenAI({});
 
 const allowedOrigins = [
   "http://localhost:3000",
@@ -16,7 +14,7 @@ const allowedOrigins = [
 
 app.use(
   cors({
-    origin: function (origin, callback) {
+    origin: (origin, callback) => {
       if (!origin || allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
@@ -29,36 +27,16 @@ app.use(
 app.use(bodyParser.json({ limit: "5mb" }));
 app.use(bodyParser.urlencoded({ limit: "5mb", extended: true }));
 
-app.post("/ask", async (req, res) => {
-  const { question, documentText } = req.body;
-
-  if (!question || !documentText) {
-    return res
-      .status(400)
-      .json({ error: "question and documentText are required" });
-  }
-
-  try {
-    const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
-      contents: `Document: ${documentText}\n\nQuestion: ${question}\nAnswer in a few words:`,
-    });
-
-    res.json({ answer: response.text });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Failed to get answer from AI" });
-  }
-});
+app.use("/api", askRoutes);
 
 app.use((err, req, res, next) => {
   if (err.status === 413) {
-    return res
-      .status(413)
-      .json({ error: "Payload too large." });
+    return res.status(413).json({ error: "Payload too large." });
   }
-  next(err);
+  console.error(err);
+  res.status(500).json({ error: "Internal server error." });
 });
+
 
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
