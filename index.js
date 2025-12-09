@@ -26,8 +26,8 @@ app.use(
   })
 );
 
-app.use(bodyParser.json({ limit: "10mb" }));
-app.use(bodyParser.urlencoded({ limit: "10mb", extended: true }));
+app.use(bodyParser.json({ limit: "5mb" }));
+app.use(bodyParser.urlencoded({ limit: "5mb", extended: true }));
 
 app.post("/ask", async (req, res) => {
   const { question, documentText } = req.body;
@@ -49,6 +49,15 @@ app.post("/ask", async (req, res) => {
     console.error(error);
     res.status(500).json({ error: "Failed to get answer from AI" });
   }
+});
+
+app.use((err, req, res, next) => {
+  if (err.status === 413) {
+    return res
+      .status(413)
+      .json({ error: "Payload too large." });
+  }
+  next(err);
 });
 
 app.listen(PORT, () => {
