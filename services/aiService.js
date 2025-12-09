@@ -14,7 +14,7 @@ export async function getAIAnswer(question, documentText) {
     console.error("Gemini API error:", err);
 
     if (err?.status === 429 || err?.message?.includes("quota")) {
-      return `Mock answer: "${question}" (Gemini free quota exceeded )`;
+      return `Mock answer: "${question}" (Gemini free quota exceeded, try again tomorrow)`;
     }
 
     return `Error generating answer: ${err.message || err}`;
